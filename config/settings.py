@@ -10,7 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+import pytz
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-8o%1yqwe+ik5_1^=(14r5feut1l20$m98d2v60u4)o^d68^(35"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = []
 
@@ -37,6 +43,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "users",
+    "mailing",
+    "django_apscheduler",
 ]
 
 MIDDLEWARE = [
@@ -74,8 +83,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.getenv("DATABASE_NAME"),
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": os.getenv("DATABASE_PORT", default="5432"),
     }
 }
 
@@ -102,16 +115,67 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+AUTH_USER_MODEL = "users.User"
 
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = "ru-RU"
+
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
 USE_TZ = True
+
+if os.name == "nt":
+    os.environ["TZ"] = "Europe/Moscow"
+    pytz.timezone("Europe/Moscow")
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+STATICFILES_DIRS = (BASE_DIR / "static",)
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Медиатека (Media)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_PORT = 465  # Вы можете использовать любой из предложенных портов (25, 2525, 465 или 587)
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Ваш логин
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Ваш пароль
+SERVER_EMAIL = os.getenv("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
+
+
+# CACHE_ENABLED = True
+# if CACHE_ENABLED:
+# CACHES = {
+# "default": {
+# "BACKEND": "django_redis.cache.RedisCache",
+# "LOCATION": "redis://127.0.0.1:6379/1",  # Адрес вашего Redis сервера
+# "OPTIONS": {
+# "CLIENT_CLASS": "django_redis.client.DefaultClient",
+# },
+# }
+# }
+
+LOGIN_REDIRECT_URL = "mailing:home"
+LOGOUT_REDIRECT_URL = "users:login"
+
+SCHEDULER_CONFIG = {
+    "apscheduler.jobstores.default.class": "django_apscheduler.jobstores:DjangoJobStore",
+    "apscheduler.executors.default.class": "apscheduler.executors.pool:ThreadPoolExecutor",
+    "apscheduler.executors.default.max_workers": "20",
+    "apscheduler.job_defaults.coalesce": "false",
+    "apscheduler.timezone": os.environ.get("TZ", "Europe/Moscow"),
+}
