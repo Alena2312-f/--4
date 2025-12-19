@@ -24,7 +24,7 @@ class RegisterView(CreateView):
         return super().form_invalid(form)
 
 
-class LoginView(LoginView):
+class UserLoginView(LoginView):
     template_name = "users/login.html"
     success_url = reverse_lazy("mailing:home")  # Перенаправление домой после авторизации
 
@@ -32,7 +32,7 @@ class LoginView(LoginView):
         return self.success_url
 
 
-class LogoutView(LogoutView):
+class UserLogoutView(LogoutView):
     next_page = reverse_lazy("users:login")  # Перенаправление на авторизацию после выхода
 
 

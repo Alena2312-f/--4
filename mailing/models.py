@@ -9,7 +9,7 @@ class Client(models.Model):
     comment = models.TextField(null=True, blank=True, verbose_name="Комментарий")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец")  # Добавлено поле владелец
 
-    def _str_(self):
+    def __str__(self):
         return self.email
 
     class Meta:
@@ -25,7 +25,7 @@ class Message(models.Model):
     body = models.TextField(verbose_name="Тело письма")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец")  # Добавлено поле владелец
 
-    def _str_(self):
+    def __str__(self):
         return self.subject
 
     class Meta:
@@ -49,7 +49,7 @@ class Mailing(models.Model):
     clients = models.ManyToManyField(Client, verbose_name="Получатели")
     owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Владелец")  # Добавлено поле владелец
 
-    def _str_(self):
+    def __str__(self):
         return f"Рассылка {self.pk}"
 
     class Meta:
@@ -71,7 +71,7 @@ class MailingAttempt(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name="Статус")
     server_response = models.TextField(null=True, blank=True, verbose_name="Ответ почтового сервера")
 
-    def _str_(self):
+    def __str__(self):
         return f"Попытка рассылки {self.mailing.pk} - {self.attempt_time}"
 
     class Meta:

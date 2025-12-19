@@ -156,18 +156,21 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Ваш пароль
 SERVER_EMAIL = os.getenv("EMAIL_HOST_USER")
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
 
+CACHE_ENABLED = True
+if CACHE_ENABLED:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",  # Адрес вашего Redis сервера
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }
 
-# CACHE_ENABLED = True
-# if CACHE_ENABLED:
-# CACHES = {
-# "default": {
-# "BACKEND": "django_redis.cache.RedisCache",
-# "LOCATION": "redis://127.0.0.1:6379/1",  # Адрес вашего Redis сервера
-# "OPTIONS": {
-# "CLIENT_CLASS": "django_redis.client.DefaultClient",
-# },
-# }
-# }
+# Настройки для сессий с использованием Redis
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 LOGIN_REDIRECT_URL = "mailing:home"
 LOGOUT_REDIRECT_URL = "users:login"
