@@ -182,3 +182,5 @@ SCHEDULER_CONFIG = {
     "apscheduler.job_defaults.coalesce": "false",
     "apscheduler.timezone": os.environ.get("TZ", "Europe/Moscow"),
 }
+
+LOGIN_URL = "users:login"
