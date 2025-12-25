@@ -12,6 +12,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django_apscheduler.models import DjangoJob
 
 from mailing.models import Client, Mailing, MailingAttempt, Message
+#from tasks import send_mailing_task, schedule_mailing_wrapper
 
 
 @cache_page(60 * 15)  # Кешируем на 15 минут
@@ -172,6 +173,8 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
             replace_existing=True,
         )
 
+
+
         messages.success(self.request, "Рассылка успешно создана и запланирована.")
         return super().form_valid(form)
 
@@ -208,12 +211,14 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class StartMailingView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request, pk, send_mailing_task=None, schedule_mailing_wrapper=None):
         mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
 
         # Запускаем задачу Celery асинхронно
-        # send_mailing_task.delay(mailing.pk) больше не нужно, так как рассылка планируется
-        # schedule_mailing_wrapper.delay(mailing.pk)
+        send_mailing_task.delay(mailing.pk) #больше не нужно, так как рассылка планируется
+
+        schedule_mailing_wrapper.delay(mailing.pk)
+
         if mailing.start_time <= timezone.now():
             messages.error(request, "Нельзя запустить рассылку, дата начала которой уже прошла")
             return redirect("mailing:mailing_list")
