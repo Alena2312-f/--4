@@ -12,6 +12,9 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django_apscheduler.models import DjangoJob
 
 from mailing.models import Client, Mailing, MailingAttempt, Message
+from mailing.tasks import send_mailing_task
+
+
 #from tasks import send_mailing_task, schedule_mailing_wrapper
 
 
@@ -160,21 +163,6 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
         form.instance.owner = self.request.user
         mailing = form.save()
 
-        # Планируем задачу schedule_mailing_wrapper
-        start_time = mailing.start_time
-        end_time = mailing.end_time
-
-        DjangoJob.objects.create(
-            name=f"mailing_task_{mailing.pk}",
-            task="mailing.tasks.schedule_mailing_wrapper",  # Corrected task path
-            args=[str(mailing.pk)],  # Передаем ID рассылки как строку
-            next_run_time=start_time,
-            end_datetime=end_time,
-            replace_existing=True,
-        )
-
-
-
         messages.success(self.request, "Рассылка успешно создана и запланирована.")
         return super().form_valid(form)
 
@@ -211,13 +199,11 @@ class MailingDeleteView(LoginRequiredMixin, DeleteView):
 
 
 class StartMailingView(LoginRequiredMixin, View):
-    def post(self, request, pk, send_mailing_task=None, schedule_mailing_wrapper=None):
+    def post(self, request, pk):
         mailing = get_object_or_404(Mailing, pk=pk, owner=request.user)
 
         # Запускаем задачу Celery асинхронно
-        send_mailing_task.delay(mailing.pk) #больше не нужно, так как рассылка планируется
-
-        schedule_mailing_wrapper.delay(mailing.pk)
+        send_mailing_task(mailing.pk)
 
         if mailing.start_time <= timezone.now():
             messages.error(request, "Нельзя запустить рассылку, дата начала которой уже прошла")

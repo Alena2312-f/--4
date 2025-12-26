@@ -12,9 +12,8 @@
                     <b>Рассылка:</b> {{ mailing }}<br>
                     <b>Статус:</b> {{ mailing.status }}<br>
                     {% if mailing_stats|get_item:mailing.id %}
-                        <b>Всего попыток:</b> {{ mailing_stats|get_item:mailing.id.total_attempts }}<br>
-                        <b>Успешных попыток:</b> {{ mailing_stats|get_item:mailing.id.successful_attempts }}<br>
-                        <b>Неудачных попыток:</b> {{ mailing_stats|get_item:mailing.id.failed_attempts }}
+
+
                     {% else %}
                         <b>Пока нет попыток.</b>
                     {% endif %}
