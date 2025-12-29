@@ -1,0 +1,26 @@
+{# templates/mailing/mailing_reports.html #}
+{% extends 'base.html' %}
+{% load mailing_extras %}
+
+{% block content %}
+    <h2>Отчеты по рассылкам</h2>
+
+    {% if mailings %}
+        <ul>
+            {% for mailing in mailings %}
+                <li>
+                    <b>Рассылка:</b> {{ mailing }}<br>
+                    <b>Статус:</b> {{ mailing.status }}<br>
+                    {% if mailing_stats|get_item:mailing.id %}
+
+
+                    {% else %}
+                        <b>Пока нет попыток.</b>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>У вас пока нет рассылок.</p>
+    {% endif %}
+{% endblock %}
